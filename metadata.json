@@ -1,0 +1,6 @@
+{
+  "name": "Academic Paper Extractor",
+  "description": "An intelligent tool to extract, analyze, and summarize information from academic research papers in PDF format using AI.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
