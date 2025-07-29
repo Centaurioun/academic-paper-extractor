@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { PaperAnalysis } from "../types";
 
@@ -9,7 +10,6 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-// Updated schema with refined descriptions and the new 'oneLiner' field.
 const responseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -46,7 +46,7 @@ const responseSchema = {
       required: ["oneLiner", "significance", "contributions", "limitations", "futureResearch"]
     },
   },
-  required: ["title", "authors", "abstract", "keyFindings", "methodologies", "conclusions", "summary"]
+  required: ["title", "authors", "abstract", "keyFindings", "methodologies", "conclusions", "summary", "publicationDetails", "keywords", "identifiedSections", "researchGap", "doi"]
 };
 
 
@@ -55,7 +55,6 @@ export const analyzePaper = async (paperText: string): Promise<PaperAnalysis> =>
       throw new Error("Extracted text is too short to be a valid academic paper. Please check the PDF content.");
   }
 
-  // The prompt now aligns with the fully-featured schema.
   const prompt = `
     # Task: Analyze the provided academic paper.
 
@@ -64,7 +63,7 @@ export const analyzePaper = async (paperText: string): Promise<PaperAnalysis> =>
     - Title
     - All Authors
     - DOI
-    - Publication Details (Journal, Year, Volume, Issue, Pages, etc.)
+    - Publication Details (Journal, 4-digit Year of publication, Volume, Issue, Pages, etc.)
     - Keywords
 
     ## Phase 2: Content Synthesis & Analysis
@@ -97,10 +96,35 @@ export const analyzePaper = async (paperText: string): Promise<PaperAnalysis> =>
     if (!jsonText) {
       throw new Error("The API returned an empty response. The paper might be too complex or not in a standard format.");
     }
+    
+    const parsed = JSON.parse(jsonText);
+    const defaults = {
+        title: "Untitled Paper",
+        authors: [],
+        abstract: "",
+        keywords: [],
+        doi: "",
+        publicationDetails: { journalName: "", publicationYear: "", volume: "", issue: "", pageNumbers: "" },
+        identifiedSections: [],
+        keyFindings: [],
+        methodologies: [],
+        conclusions: [],
+        researchGap: "",
+        summary: { oneLiner: "", significance: "", contributions: "", limitations: "", futureResearch: "" },
+    };
+    // Deep merge to ensure nested objects have defaults applied
+    return { 
+        ...defaults, 
+        ...parsed, 
+        publicationDetails: {...defaults.publicationDetails, ...parsed.publicationDetails}, 
+        summary: {...defaults.summary, ...parsed.summary} 
+    } as PaperAnalysis;
 
-    return JSON.parse(jsonText) as PaperAnalysis;
   } catch (error) {
     console.error("Gemini API call failed:", error);
+     if (error instanceof SyntaxError) {
+        throw new Error("Failed to parse the AI response. The data might be malformed.");
+    }
     throw new Error("Failed to analyze the paper with AI. Please try again or with a different file.");
   }
 };

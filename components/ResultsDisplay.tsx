@@ -12,7 +12,7 @@ interface ResultsDisplayProps {
 }
 
 const SectionContent: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
-  if (!children || (Array.isArray(children) && children.length === 0)) {
+  if (!children || (Array.isArray(children) && children.length === 0 && typeof children !== 'string')) {
     return (
       <p className="text-sm text-gray-500 italic px-4 pb-4">
         No {title.toLowerCase()} information extracted.
@@ -66,11 +66,19 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, fileName
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
           {result.authors.join(', ')}
         </p>
+        {result.summary?.oneLiner && (
+          <blockquote className="mt-4 pl-4 border-l-4 border-blue-500 italic text-gray-700 dark:text-gray-300">
+            <p>"{result.summary.oneLiner}"</p>
+          </blockquote>
+        )}
       </header>
 
-      <Accordion type="multiple" defaultValue={['abstract', 'key-findings']}>
+      <Accordion type="multiple" defaultValue={['abstract', 'summary', 'research-gap']}>
         <AccordionItem value="abstract" title="Abstract">
             <SectionContent title="Abstract"><p>{result.abstract}</p></SectionContent>
+        </AccordionItem>
+        <AccordionItem value="research-gap" title="Identified Research Gap">
+            <SectionContent title="Research Gap"><p>{result.researchGap}</p></SectionContent>
         </AccordionItem>
         <AccordionItem value="key-findings" title="Key Findings">
             <SectionContent title="Key Findings"><BulletList items={result.keyFindings} /></SectionContent>

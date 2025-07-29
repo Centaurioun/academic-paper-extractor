@@ -17,6 +17,7 @@ export interface PublicationDetails {
 }
 
 export interface Summary {
+  oneLiner: string;
   significance: string;
   contributions: string;
   limitations: string;
